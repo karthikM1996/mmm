@@ -1,15 +1,18 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs "NodeJS"
-    }
-
     stages {
 
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Check Node') {
+            steps {
+                bat 'node -v'
+                bat 'npm -v'
             }
         }
 
@@ -47,16 +50,8 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: 'playwright-report/**', fingerprint: true
-            archiveArtifacts artifacts: 'test-results/**', fingerprint: true
-        }
-
-        success {
-            echo 'Playwright tests executed successfully.'
-        }
-
-        failure {
-            echo 'Playwright test execution failed.'
+            archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
         }
     }
 }
