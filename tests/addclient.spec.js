@@ -1,7 +1,7 @@
 
 import {test, expect} from '@playwright/test'
 
-test("name",async({page})=>{
+test("name @Smoke",async({page})=>{
 
 await page.goto("http://49.249.29.4:8081/TestServer/Build/Client_Management_System/admin/index.php")
 await page.locator("//input[@name='username']").fill("admin")

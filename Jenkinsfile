@@ -1,6 +1,14 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(
+            name: 'TEST_SUITE',
+            choices: ['Smoke', 'Regression', 'All'],
+            description: 'Select Test Suite'
+        )
+    }
+
     stages {
 
         stage('Checkout') {
@@ -30,7 +38,17 @@ pipeline {
 
         stage('Run Playwright Tests') {
             steps {
-                bat 'npx playwright test'
+                script {
+                    if (params.TEST_SUITE == 'Smoke') {
+                        bat 'npx playwright test --grep "@Smoke"'
+                    }
+                    else if (params.TEST_SUITE == 'Regression') {
+                        bat 'npx playwright test --grep "@Regression"'
+                    }
+                    else {
+                        bat 'npx playwright test'
+                    }
+                }
             }
         }
 
