@@ -13,7 +13,9 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'main',
+                    credentialsId: 'github-creds',
+                    url: 'https://github.com/karthikM1996/mmm.git'
             }
         }
 
@@ -70,6 +72,14 @@ pipeline {
         always {
             archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
             archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
+        }
+
+        success {
+            echo 'Playwright Tests Executed Successfully'
+        }
+
+        failure {
+            echo 'Playwright Test Execution Failed'
         }
     }
 }
