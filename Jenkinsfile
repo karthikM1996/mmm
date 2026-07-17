@@ -11,14 +11,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                git branch: 'main',
-                    credentialsId: 'github-creds',
-                    url: 'https://github.com/karthikM1996/mmm.git'
-            }
-        }
-
         stage('Check Node') {
             steps {
                 bat 'node -v'
@@ -43,11 +35,9 @@ pipeline {
                 script {
                     if (params.TEST_SUITE == 'Smoke') {
                         bat 'npx playwright test --grep "@Smoke"'
-                    }
-                    else if (params.TEST_SUITE == 'Regression') {
+                    } else if (params.TEST_SUITE == 'Regression') {
                         bat 'npx playwright test --grep "@Regression"'
-                    }
-                    else {
+                    } else {
                         bat 'npx playwright test'
                     }
                 }
@@ -66,14 +56,17 @@ pipeline {
                 ])
             }
         }
+
+        stage('Archive Artifacts') {
+            steps {
+                archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
+                archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
+            }
+        }
+
     }
 
     post {
-        always {
-            archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
-            archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
-        }
-
         success {
             echo 'Playwright Tests Executed Successfully'
         }
