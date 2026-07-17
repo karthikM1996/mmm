@@ -24,6 +24,7 @@ await page.locator("//input[@name='email']").fill("karthik@gmail.com")
 await page.locator("//input[@name='websiteadd']").fill("kspider")
 await page.locator("//textarea[@name='notes']").fill("hai")
 await page.getByText("Save").click();
+console.log("hello")
 
 
 
