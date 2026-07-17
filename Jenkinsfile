@@ -3,6 +3,8 @@ pipeline {
 
      environment {
         APP_LOGIN = credentials('healthcare-login')
+        APP_USERNAME = "${APP_LOGIN_USR}"
+        APP_PASSWORD = "${APP_LOGIN_PSW}"
     }
 
     parameters {
