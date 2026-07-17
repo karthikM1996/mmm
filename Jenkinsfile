@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+     environment {
+        APP_LOGIN = credentials('healthcare-login')
+    }
+
     parameters {
         choice(
             name: 'TEST_SUITE',
