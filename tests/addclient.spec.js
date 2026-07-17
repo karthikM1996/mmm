@@ -1,11 +1,13 @@
-
+require('dotenv').config();
 import {test, expect} from '@playwright/test'
 
 test("name @Smoke",async({page})=>{
 
 await page.goto("http://49.249.29.4:8081/TestServer/Build/Client_Management_System/admin/index.php")
-await page.locator("//input[@name='username']").fill(process.env.APP_LOGIN_USR)
-await page.locator("//input[@name='password']").fill(process.env.APP_LOGIN_PSW)
+console.log(process.env.USERNAME)
+console.log(process.env.PASSWORD)
+await page.locator("//input[@name='username']").fill(process.env.APP_USERNAME)
+await page.locator("//input[@name='password']").fill(process.env.APP_PASSWORD)
 await page.locator("//input[@name='login']").click()
 
 await page.getByText("Add Clients").click()
