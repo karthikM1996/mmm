@@ -1,7 +1,7 @@
 pipeline {
     agent any
 
-     environment {
+    environment {
         APP_LOGIN = credentials('healthcare-login')
         APP_USERNAME = "${APP_LOGIN_USR}"
         APP_PASSWORD = "${APP_LOGIN_PSW}"
@@ -36,49 +36,97 @@ pipeline {
             }
         }
 
-        stage('Run Playwright Tests') {
-            steps {
-                script {
-                    if (params.TEST_SUITE == 'Smoke') {
-                        bat 'npx playwright test --grep "@Smoke"'
-                    } else if (params.TEST_SUITE == 'Regression') {
-                        bat 'npx playwright test --grep "@Regression"'
-                    } else {
-                        bat 'npx playwright test'
+        stage('Cross Browser Execution') {
+
+            parallel {
+
+                stage('Chromium') {
+                    steps {
+                        script {
+                            if (params.TEST_SUITE == 'Smoke') {
+                                bat 'npx playwright test --project=chromium --grep "@Smoke"'
+                            } else if (params.TEST_SUITE == 'Regression') {
+                                bat 'npx playwright test --project=chromium --grep "@Regression"'
+                            } else {
+                                bat 'npx playwright test --project=chromium'
+                            }
+                        }
                     }
                 }
+
+                stage('Firefox') {
+                    steps {
+                        script {
+                            if (params.TEST_SUITE == 'Smoke') {
+                                bat 'npx playwright test --project=firefox --grep "@Smoke"'
+                            } else if (params.TEST_SUITE == 'Regression') {
+                                bat 'npx playwright test --project=firefox --grep "@Regression"'
+                            } else {
+                                bat 'npx playwright test --project=firefox'
+                            }
+                        }
+                    }
+                }
+
+                stage('Edge') {
+                    steps {
+                        script {
+                            if (params.TEST_SUITE == 'Smoke') {
+                                bat 'npx playwright test --project=msedge --grep "@Smoke"'
+                            } else if (params.TEST_SUITE == 'Regression') {
+                                bat 'npx playwright test --project=msedge --grep "@Regression"'
+                            } else {
+                                bat 'npx playwright test --project=msedge'
+                            }
+                        }
+                    }
+                }
+
             }
         }
-
-        stage('Publish HTML Report') {
-            steps {
-                publishHTML(target: [
-                    allowMissing: true,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: 'playwright-report',
-                    reportFiles: 'index.html',
-                    reportName: 'Playwright Report'
-                ])
-            }
-        }
-
-        stage('Archive Artifacts') {
-            steps {
-                archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
-                archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
-            }
-        }
-
     }
 
     post {
+
+        always {
+
+            echo "Publishing Reports..."
+
+            // Generate Allure Report
+            bat 'allure generate allure-results --clean -o allure-report'
+
+            // Publish Playwright HTML Report
+            publishHTML(target: [
+                allowMissing: true,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'playwright-report',
+                reportFiles: 'index.html',
+                reportName: 'Playwright HTML Report'
+            ])
+
+            // Publish Allure Report
+            allure([
+                includeProperties: false,
+                jdk: '',
+                results: [[path: 'allure-results']]
+            ])
+
+            // Archive Reports
+            archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'allure-results/**', allowEmptyArchive: true
+
+            // Archive Screenshots, Videos & Traces
+            archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
+        }
+
         success {
-            echo 'Playwright Tests Executed Successfully'
+            echo '✅ Playwright Tests Passed'
         }
 
         failure {
-            echo 'Playwright Test Execution Failed'
+            echo '❌ Playwright Tests Failed'
         }
     }
 }
