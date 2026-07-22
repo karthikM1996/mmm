@@ -54,15 +54,29 @@ pipeline {
                     }
                 }
 
-                stage('Edge') {
+                stage('Firefox') {
                     steps {
                         script {
                             if (params.TEST_SUITE == 'Smoke') {
-                                bat 'npx playwright test --project=msedge --grep "@Smoke"'
+                                bat 'npx playwright test --project=firefox --grep "@Smoke"'
                             } else if (params.TEST_SUITE == 'Regression') {
-                                bat 'npx playwright test --project=msedge --grep "@Regression"'
+                                bat 'npx playwright test --project=firefox --grep "@Regression"'
                             } else {
-                                bat 'npx playwright test --project=msedge'
+                                bat 'npx playwright test --project=firefox'
+                            }
+                        }
+                    }
+                }
+
+                stage('WebKit') {
+                    steps {
+                        script {
+                            if (params.TEST_SUITE == 'Smoke') {
+                                bat 'npx playwright test --project=webkit --grep "@Smoke"'
+                            } else if (params.TEST_SUITE == 'Regression') {
+                                bat 'npx playwright test --project=webkit --grep "@Regression"'
+                            } else {
+                                bat 'npx playwright test --project=webkit'
                             }
                         }
                     }
@@ -93,16 +107,15 @@ pipeline {
             allure([
                 includeProperties: false,
                 jdk: '',
+                commandline: 'Allure',
                 results: [[path: 'allure-results']]
             ])
 
-            // Archive Playwright Report
+            // Archive Reports
             archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
-
-            // Archive Allure Results
             archiveArtifacts artifacts: 'allure-results/**', allowEmptyArchive: true
 
-            // Archive Screenshots, Videos and Traces
+            // Archive Screenshots, Videos & Traces
             archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
         }
 
