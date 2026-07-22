@@ -54,20 +54,6 @@ pipeline {
                     }
                 }
 
-                stage('Firefox') {
-                    steps {
-                        script {
-                            if (params.TEST_SUITE == 'Smoke') {
-                                bat 'npx playwright test --project=firefox --grep "@Smoke"'
-                            } else if (params.TEST_SUITE == 'Regression') {
-                                bat 'npx playwright test --project=firefox --grep "@Regression"'
-                            } else {
-                                bat 'npx playwright test --project=firefox'
-                            }
-                        }
-                    }
-                }
-
                 stage('Edge') {
                     steps {
                         script {
@@ -84,16 +70,14 @@ pipeline {
 
             }
         }
+
     }
 
     post {
 
         always {
 
-            echo "Publishing Reports..."
-
-            // Generate Allure Report
-            bat 'allure generate allure-results --clean -o allure-report'
+            echo 'Publishing Reports...'
 
             // Publish Playwright HTML Report
             publishHTML(target: [
@@ -112,21 +96,22 @@ pipeline {
                 results: [[path: 'allure-results']]
             ])
 
-            // Archive Reports
+            // Archive Playwright Report
             archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
-            archiveArtifacts artifacts: 'allure-report/**', allowEmptyArchive: true
+
+            // Archive Allure Results
             archiveArtifacts artifacts: 'allure-results/**', allowEmptyArchive: true
 
-            // Archive Screenshots, Videos & Traces
+            // Archive Screenshots, Videos and Traces
             archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
         }
 
         success {
-            echo '✅ Playwright Tests Passed'
+            echo '✅ Playwright Tests Executed Successfully'
         }
 
         failure {
-            echo '❌ Playwright Tests Failed'
+            echo '❌ Playwright Test Execution Failed'
         }
     }
 }
